@@ -1,4 +1,4 @@
-import prisma from "../prisma/prismaConfig";
+import prisma from "../configs/prismaConfig";
 
 interface Itodo {
   title: string;
@@ -50,5 +50,13 @@ export const updateTodoService = async (data: IupdateTodoWithId) => {
       id: data.id,
     },
     data: updatedData,
+  });
+};
+
+export const deleteTodoById = async (id: number) => {
+  return await prisma.todo.delete({
+    where: {
+      id: id,
+    },
   });
 };

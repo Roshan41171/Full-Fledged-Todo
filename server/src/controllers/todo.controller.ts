@@ -1,24 +1,24 @@
-import prisma from "../prisma/prismaConfig";
 import {
   getSingleTodoSchema,
   postTodoSchema,
   updateTodoSchema,
-} from "../zod/zodConfig";
+} from "../configs/zodConfig";
 import type { Request, Response } from "express";
 import { z } from "zod";
 import {
   createTodo,
+  deleteTodoById,
   findTodoById,
   getAllTodos,
   updateTodoService,
 } from "../services/todo.service";
 import { StatusCodes as SC, ErrorMessages as EM } from "../constants";
 
-const getTodos = async (req: Request, res: Response): Promise<void> => {
+const getTodos = async (_req: Request, res: Response): Promise<void> => {
   try {
     const todos = await getAllTodos();
 
-    res.json(todos);
+    res.status(SC.OK).json(todos);
     return;
   } catch (error) {
     res
@@ -32,13 +32,13 @@ const getTodoById = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = getSingleTodoSchema.parse(parseInt(req.params.id));
 
-    const todo = findTodoById(id);
+    const todo = await findTodoById(id);
 
     if (!todo) {
       res.status(SC.NOT_FOUND).json({ error: EM.INVALID_ID });
       return;
     }
-    res.json({ todo });
+    res.status(SC.OK).json({ todo });
     return;
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -57,7 +57,7 @@ const postTodo = async (req: Request, res: Response): Promise<void> => {
     const validatedData = postTodoSchema.parse(req.body);
     const todo = await createTodo(validatedData);
 
-    res.json({ message: "Todo created successfully", todo });
+    res.status(SC.CREATED).json({ message: "Todo created successfully", todo });
     return;
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -85,9 +85,9 @@ const updateTodo = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const updatedTodo = await updateTodoService(validatedData);
+    await updateTodoService(validatedData);
 
-    res.json({ message: "Todo Updated Successfully", updatedTodo });
+    res.status(SC.OK).json({ message: "Todo Updated Successfully" });
     return;
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -110,13 +110,8 @@ const deleteTodo = async (req: Request, res: Response): Promise<void> => {
       res.status(SC.NOT_FOUND).json({ error: EM.INVALID_ID });
       return;
     }
-
-    await prisma.todo.delete({
-      where: {
-        id: id,
-      },
-    });
-    res.json({ message: `Todo of ID ${id} is deleted.` });
+    await deleteTodoById(id);
+    res.status(SC.OK).json({ message: `Todo of ID ${id} is deleted.` });
     return;
   } catch (error) {
     if (error instanceof z.ZodError) {
