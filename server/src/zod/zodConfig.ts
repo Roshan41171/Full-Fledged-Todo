@@ -6,11 +6,13 @@ const postTodoSchema = z.object({
   isCompleted: z.boolean(),
 });
 
-const update_and_delete_TodoSchema = z.object({
+const updateTodoSchema = z.object({
   id: z.number(),
   title: z.string().max(20).optional(),
   body: z.string().optional(),
   isCompleted: z.boolean().optional(),
 });
 
-export { postTodoSchema, update_and_delete_TodoSchema };
+const getSingleTodoSchema = z.number();
+
+export { postTodoSchema, updateTodoSchema, getSingleTodoSchema };
