@@ -6,15 +6,24 @@ import {
 } from "../zod/zodConfig";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { findTodoById } from "../services/todo.service";
+import {
+  createTodo,
+  findTodoById,
+  getAllTodos,
+  updateTodoService,
+} from "../services/todo.service";
+import { StatusCodes as SC, ErrorMessages as EM } from "../constants";
 
 const getTodos = async (req: Request, res: Response): Promise<void> => {
   try {
-    const todos = await prisma.todo.findMany();
+    const todos = await getAllTodos();
 
     res.json(todos);
+    return;
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res
+      .status(SC.INTERNAL_SERVER_ERROR)
+      .json({ error: EM.INTERNAL_SERVER_ERROR });
     return;
   }
 };
@@ -26,37 +35,38 @@ const getTodoById = async (req: Request, res: Response): Promise<void> => {
     const todo = findTodoById(id);
 
     if (!todo) {
-      res.json({ error: "Invalid ID" });
+      res.status(SC.NOT_FOUND).json({ error: EM.INVALID_ID });
       return;
     }
     res.json({ todo });
     return;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.json({ error: "Invalid Input Type" });
+      res.status(SC.NOT_ACCEPTABLE).json({ error: EM.INVALID_INPUT_TYPE });
       return;
     }
+    res
+      .status(SC.INTERNAL_SERVER_ERROR)
+      .json({ error: EM.INTERNAL_SERVER_ERROR });
+    return;
   }
 };
 
 const postTodo = async (req: Request, res: Response): Promise<void> => {
   try {
     const validatedData = postTodoSchema.parse(req.body);
-    const todo = await prisma.todo.create({
-      data: {
-        title: validatedData.title,
-        body: validatedData.body,
-        isCompleted: validatedData.isCompleted,
-      },
-    });
+    const todo = await createTodo(validatedData);
 
-    res.json({ message: "Todo created successfully" });
+    res.json({ message: "Todo created successfully", todo });
+    return;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.json({ message: "Invalid Input Types" });
+      res.status(SC.NOT_ACCEPTABLE).json({ error: EM.INVALID_INPUT_TYPE });
       return;
     }
-    res.status(500).json({ error: "Internal Server Error" });
+    res
+      .status(SC.INTERNAL_SERVER_ERROR)
+      .json({ error: EM.INTERNAL_SERVER_ERROR });
     return;
   }
 };
@@ -71,33 +81,22 @@ const updateTodo = async (req: Request, res: Response): Promise<void> => {
     const todo = await findTodoById(validatedData.id);
 
     if (!todo) {
-      res.json({ error: "Todo Not Found" });
+      res.status(SC.NOT_FOUND).json({ error: EM.INVALID_ID });
       return;
     }
 
-    const updatedData: {
-      title?: string;
-      body?: string;
-      isCompleted?: boolean;
-    } = {};
-    if (validatedData.title !== undefined)
-      updatedData.title = validatedData.title;
-    if (validatedData.body !== undefined) updatedData.body = validatedData.body;
-    if (validatedData.isCompleted !== undefined)
-      updatedData.isCompleted = validatedData.isCompleted;
+    const updatedTodo = await updateTodoService(validatedData);
 
-    const updateTodo = await prisma.todo.update({
-      where: {
-        id: validatedData.id,
-      },
-      data: updatedData,
-    });
+    res.json({ message: "Todo Updated Successfully", updatedTodo });
+    return;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.json({ error: "Invalid Input Types" });
+      res.status(SC.NOT_ACCEPTABLE).json({ error: EM.INVALID_INPUT_TYPE });
       return;
     }
-    res.json({ error: "Internal Server Error" });
+    res
+      .status(SC.INTERNAL_SERVER_ERROR)
+      .json({ error: EM.INTERNAL_SERVER_ERROR });
     return;
   }
 };
@@ -108,7 +107,7 @@ const deleteTodo = async (req: Request, res: Response): Promise<void> => {
     const todo = await findTodoById(id);
 
     if (!todo) {
-      res.json({ error: "Todo Not Found" });
+      res.status(SC.NOT_FOUND).json({ error: EM.INVALID_ID });
       return;
     }
 
@@ -121,10 +120,12 @@ const deleteTodo = async (req: Request, res: Response): Promise<void> => {
     return;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.json({ error: "Invalid Input Type" });
+      res.status(SC.NOT_ACCEPTABLE).json({ error: EM.INVALID_INPUT_TYPE });
       return;
     }
-    res.json({ error: "Internal Server Error" });
+    res
+      .status(SC.INTERNAL_SERVER_ERROR)
+      .json({ error: EM.INTERNAL_SERVER_ERROR });
     return;
   }
 };
