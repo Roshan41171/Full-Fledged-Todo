@@ -55,8 +55,10 @@ const ErrorTestTodo = new TodoTestData("Error Test Todo", false, false);
 const ErrorTestTodo2 = new TodoTestData("Error Todo Data", "Error Data", "bad");
 
 describe("Todo CRUD Operations", () => {
+  let TodoID = "";
   test("Insert Todo Successfully", async () => {
     const response = await axios.post(`${BACKEND_URL}/${TODO_API}`, TestTodo);
+    TodoID = response.data.todo.id;
     expect(response.status).toBe(201);
   });
 
@@ -65,6 +67,7 @@ describe("Todo CRUD Operations", () => {
       `${BACKEND_URL}/${TODO_API}`,
       ErrorTestTodo
     );
+
     expect(response.status).toBe(406);
   });
 
@@ -74,5 +77,20 @@ describe("Todo CRUD Operations", () => {
       ErrorTestTodo2
     );
     expect(response.status).toBe(406);
+  });
+
+  test("Fetching Todo by ID", async () => {
+    const response = await axios.get(`${BACKEND_URL}/${TODO_API}/${TodoID}`);
+    expect(response.data.todo.id).toBe(TodoID);
+  });
+
+  test("Fetching Todo by ID with wrong InputType", async () => {
+    const response = await axios.get(`${BACKEND_URL}/${TODO_API}/abc`);
+    expect(response.status).toBe(406);
+  });
+
+  test("Fetching Todo by ID with non-existing ID", async () => {
+    const response = await axios.get(`${BACKEND_URL}/${TODO_API}/1000000`);
+    expect(response.status).toBe(404);
   });
 });

@@ -85,9 +85,11 @@ const updateTodo = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    await updateTodoService(validatedData);
+    const updatedTodo = await updateTodoService(validatedData);
 
-    res.status(SC.OK).json({ message: "Todo Updated Successfully" });
+    res
+      .status(SC.OK)
+      .json({ message: "Todo Updated Successfully", updatedTodo });
     return;
   } catch (error) {
     if (error instanceof z.ZodError) {
