@@ -93,4 +93,33 @@ describe("Todo CRUD Operations", () => {
     const response = await axios.get(`${BACKEND_URL}/${TODO_API}/1000000`);
     expect(response.status).toBe(404);
   });
+
+  test("Update Todo with single field ( todo body )", async () => {
+    const response = await axios.patch(`${BACKEND_URL}/${TODO_API}/${TodoID}`, {
+      body: "Aggressive Learning",
+    });
+    expect(response.data.updatedTodo.body).toBe("Aggressive Learning");
+  });
+
+  test("Update Todo with multiple fields", async () => {
+    const newTodo = {
+      title: "My New Title",
+      body: "My Amazing Body",
+      isCompleted: true,
+    };
+    const response = await axios.patch(
+      `${BACKEND_URL}/${TODO_API}/${TodoID}`,
+      newTodo
+    );
+    const { id, ...todoWithOutID } = response.data.updatedTodo;
+    console.log(todoWithOutID);
+    expect(todoWithOutID).toStrictEqual(newTodo);
+  });
+
+  test("Update Todo with Invalid isCompleted type", async () => {
+    const response = await axios.patch(`${BACKEND_URL}/${TODO_API}/${TodoID}`, {
+      isCompleted: "hello world",
+    });
+    expect(response.status).toBe(406);
+  });
 });
