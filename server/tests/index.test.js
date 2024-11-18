@@ -122,4 +122,35 @@ describe("Todo CRUD Operations", () => {
     });
     expect(response.status).toBe(406);
   });
+
+  test("Update Todo with non-existing ID", async () => {
+    const response = await axios.patch(`${BACKEND_URL}/${TODO_API}/450000`, {
+      isCompleted: true,
+    });
+    expect(response.status).toBe(404);
+  });
+
+  test("Delete Todo with non-existing ID", async () => {
+    const response = await axios.delete(`${BACKEND_URL}/${TODO_API}/4500000`);
+    expect(response.status).toBe(404);
+  });
+
+  test("Delete Todo with existing ID", async () => {
+    const preResponse = await axios.get(`${BACKEND_URL}/${TODO_API}/${TodoID}`);
+    expect(preResponse.data.todo.id).toBe(TodoID);
+    expect(preResponse.status).toBe(200);
+    const response = await axios.delete(`${BACKEND_URL}/${TODO_API}/${TodoID}`);
+    const postResponse = await axios.get(
+      `${BACKEND_URL}/${TODO_API}/${TodoID}`
+    );
+    expect(postResponse.status).toBe(404);
+    expect(response.status).toBe(200);
+  });
+
+  test("Delete Todo with Invalid Input Type", async () => {
+    const response = await axios.delete(
+      `${BACKEND_URL}/${TODO_API}/helloWorld`
+    );
+    expect(response.status).toBe(406);
+  });
 });
