@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, Edit } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 interface Todo {
   id: number;
@@ -16,6 +17,8 @@ export default function Todo() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputText, setInputText] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
+
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const storedTodos = localStorage.getItem("todos");
