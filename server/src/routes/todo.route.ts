@@ -10,6 +10,6 @@ import {
 const router = Router();
 
 router.route("/todo").get(getTodos).post(postTodo);
-router.route("/todo/:id").get(getTodoById).patch(updateTodo).delete(deleteTodo);
+router.route("/todo/:id").get(getTodoById).put(updateTodo).delete(deleteTodo);
 
 export default router;
